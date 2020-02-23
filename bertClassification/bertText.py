@@ -25,27 +25,7 @@ class bertText(object):
 
 		self.loss,self.accuracy = self.loss_layer(outputs)
 
-		# bert模型参数初始化的地方
-		init_checkpoint = "uncased_L-12_H-768_A-12/bert_model.ckpt"
-		# 获取模型中所有的训练参数。
-		tvars = tf.trainable_variables()
-        # 加载BERT模型
-		(assignment_map, initialized_variable_names) = modeling.get_assignment_map_from_checkpoint(tvars,
-                                                                                      init_checkpoint)
-		tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
-		print("**** Trainable Variables ****")
-        # 打印加载模型的参数
-		train_vars = []
-		for var in tvars:
-			init_string = ""
-			if var.name in initialized_variable_names:
-				init_string = ", *INIT_FROM_CKPT*"
-			else:			
-				train_vars.append(var)
-			print("  name = %s, shape = %s%s", var.name, var.shape,
-					init_string)
-
-		self.opt = tf.train.AdamOptimizer(1e-3).minimize(self.loss,global_step=self.global_step)
+		#self.opt = tf.train.AdamOptimizer(1e-3).minimize(self.loss,global_step=self.global_step)
 
 
 	def bert_embeddings(self):
@@ -70,7 +50,7 @@ class bertText(object):
 								initializer = tf.zeros_initializer(),
 								name='b')
 			output = tf.nn.xw_plus_b(bert_inputs,w,b)
-			output = tf.nn.tanh(output)
+			#output = tf.nn.tanh(output)
 			output = tf.layers.dense(bert_inputs,hidden_size,activation =tf.nn.relu,name="scores")
 			project_out = tf.layers.dense(output,self.num_classes,name="cls")
 

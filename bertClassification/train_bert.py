@@ -41,6 +41,14 @@ FLAGS = tf.flags.FLAGS
 #     print("{}={}".format(attr.upper(), value))
 # print("")
 
+def load_parameter_from_ckpt(ckpt_dir):
+    ckpt = tf.train.get_checkpoint_state(ckpt_dir)
+    ckpt_path = ckpt.model_checkpoint_path
+
+    model_reader = tf.train.NewCheckpointReader(ckpt_path)
+    variables = model_reader.get_variable_to_shape_map().keys()
+    parameters = {var:model_reader.get_tensor(var) for var in variables}
+    return parameters
 def preprocess():
     # Data Preparation
     # ==================================================
@@ -84,17 +92,48 @@ def train(x_train, y_train, x_dev, y_dev):
         with sess.as_default():
             #num_classes,max_sen_len,hidden_size,drop_out_keep,
             model = bertText(
-                num_classes=2,
-                max_sen_len=56,
+                num_classes =2,
+                max_sen_len = 56,
                 hidden_size = 256,
                 )
             # Define Training procedure
+            saver = tf.train.Saver(tf.global_variables(), max_to_keep=10)
+            # bert模型参数初始化的地方
+            global_step = tf.Variable(0,trainable=False,name="global_step")
+            init_checkpoint = "uncased_L-12_H-768_A-12/bert_model.ckpt"
+            # 获取模型中所有的训练参数。
+            tvars = tf.trainable_variables()
+            grad, _ = tf.clip_by_global_norm(tf.gradients(model.loss,tvars),10)
+            optimizer = tf.train.AdamOptimizer(1e-3)
+            opt = optimizer.apply_gradients(zip(grad,tvars),global_step=global_step)
+            # 加载BERT模型
+            (assignment_map, initialized_variable_names) = modeling.get_assignment_map_from_checkpoint(tvars,
+                                                                                                       init_checkpoint)
+            tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
+            print("**** Trainable Variables ****")
+            # 打印加载模型的参数
+            train_vars = []
+            for var in tvars:
+                init_string = ""
+                if var.name in initialized_variable_names:
+                    init_string = ", *INIT_FROM_CKPT*"
+                else:
+                    train_vars.append(var)
+                print("  name = %s, shape = %s%s", var.name, var.shape,init_string)
             '''
-            global_step = tf.Variable(0, name="global_step", trainable=False)
-            optimizer = tf.train.AdamOptimizer(5e-3)
-            grads_and_vars = optimizer.compute_gradients(model.loss)
-            train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
+             #加载模型参数方式二
+            if is_restore:
+                ckpt = tf.train.get_checkpoint_state("model/best")
+                ckpt_path = ckpt.model_checkpoint_path
+                sess.run(saver.restore(sess,ckpt_path))
+            else:
+                parameters = load_parameter_from_ckpt("uncased_L-12_H-768_A-12/")
+                for v in tvars:
+                    for key,value in parameters.items():
+                        if key in v.name:
+                            sess.run(tf.assign(v,value))
             '''
+
             # Output directory for models and summaries
             timestamp = str(int(time.time()))
             out_dir = os.path.abspath(os.path.join(os.path.curdir, "runs", timestamp))
@@ -117,10 +156,10 @@ def train(x_train, y_train, x_dev, y_dev):
             # Checkpoint directory. Tensorflow assumes this directory already exists so we need to create it
             checkpoint_dir = os.path.abspath(os.path.join(out_dir, "checkpoints"))
             checkpoint_prefix = os.path.join(checkpoint_dir, "model")
+
             if not os.path.exists(checkpoint_dir):
                 os.makedirs(checkpoint_dir)
-            saver = tf.train.Saver(tf.global_variables(), max_to_keep=FLAGS.num_checkpoints)
-            
+
             # Initialize all variables
             sess.run(tf.global_variables_initializer())
 
@@ -136,7 +175,7 @@ def train(x_train, y_train, x_dev, y_dev):
                   model.dropout_keep_prob: FLAGS.dropout_keep_prob
                 }
                 _, step, loss, accuracy = sess.run(
-                    [model.opt, model.global_step, model.loss, model.accuracy],
+                    [opt, global_step, model.loss, model.accuracy],
                     feed_dict)
                 time_str = datetime.datetime.now().isoformat()
                 #print("{}: step {}, loss {:g}, acc {:g}".format(time_str, step, loss, accuracy))
@@ -153,7 +192,7 @@ def train(x_train, y_train, x_dev, y_dev):
                   model.dropout_keep_prob: 1.0
                 }
                 step, loss, accuracy = sess.run(
-                    [model.global_step, model.loss, model.accuracy],
+                    [global_step, model.loss, model.accuracy],
                     feed_dict)
                 time_str = datetime.datetime.now().isoformat()
                 print("{}: step {}, loss {:g}, acc {:g}".format(time_str, step, loss, accuracy))
