@@ -86,22 +86,3 @@ if(result==0):
 	print(test_text, "is Bad mean")
 else:
 	print(test_text,'is good mean')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
