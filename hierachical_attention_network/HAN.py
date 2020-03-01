@@ -13,19 +13,18 @@ def length(sequences):
 
 class HAN(object):
 	def __init__(self,vocab_size,num_classes,embedding_size=200,hidden_size=50):
-
-		self.vocab_size = vocab_size #词表的数量
-		self.num_classes = num_classes # 类别数
+		self.vocab_size = vocab_size
+		self.num_classes = num_classes
 		self.embedding_size = embedding_size
 		self.hidden_size = hidden_size
 
-		with tf.name_scope("input_placehodler"):
+		with tf.name_scope("input_placeholder"):
 			self.max_sentence_num = tf.placeholder(tf.int32,name="max_sentence_num")
-			self.max_sentence_length = tf.placeholder(tf.int32,name="max_sength_length")
+			self.max_sentence_length = tf.placeholder(tf.int32,name="max_sentence_length")
 			self.batch_size = tf.placeholder(tf.int32,name="batch_size")
 
 			# x的shape为[batch_size,sentence_num,sentence_length(单词个数)] 但是每个样本的数据都不一样，这里指定为none
-			self.input_x = tf.placeholder(tf.int32,[None,None,None],name="inpiut_x")
+			self.input_x = tf.placeholder(tf.int32,[None,None,None],name="input_x")
 			self.input_y = tf.placeholder(tf.int32,[None,self.num_classes],name="labels")
 
 		#构建模型
@@ -117,5 +116,3 @@ if __name__ == '__main__':
 		print(sen_vec)
 		print(doc_vec.shape) #(8,100)
 		print(doc_vec)
-
-
