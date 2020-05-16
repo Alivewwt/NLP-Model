@@ -4,5 +4,5 @@ Tensorflow solution of  "Label-Specific Document Representation for Multi-Label 
 
 ### Reference
 
-- EMNLP2019LSAN/LSAN repository [github][https://github.com/EMNLP2019LSAN/LSAN]
+- EMNLP2019LSAN/LSAN repository [github](https://github.com/EMNLP2019LSAN/LSAN)
 
