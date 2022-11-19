@@ -1,6 +1,6 @@
 ## NLP Model
 
-#Text Classification(文本分类)
+# Text Classification(文本分类)
 
 1. **CNN**  使用CNN（卷积神经网络）对文本进行分类;
 
@@ -10,18 +10,18 @@
 
 4. **BERT** 使用预训练模型BERT，在下游的分类任务进行微调。
 
-#Doc Embedding(篇章向量)
+# Doc Embedding(篇章向量)
 
 - 使用bi-lstm对句子和文档进行建模，获得句子和文档向量，在最后的分类层进行融合。
 
-#GraphConv(图卷积网络)
+# GraphConv(图卷积网络)
 
 - 图卷积网络的一种实现。
 
-#Sep2Sep(序列到序列)
+# Sep2Sep(序列到序列)
 
 - 使用seq2seq完成文章标题自动生成任务。
 
-#textSimilarity(文本相似度)
+# textSimilarity(文本相似度)
 
 - 针对文本相似度任务进行建模。
